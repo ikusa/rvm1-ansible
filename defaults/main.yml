@@ -22,6 +22,11 @@ rvm1_install_flags: '--auto-dotfiles --user-install'
 # Add additional ruby install flags
 rvm1_ruby_install_flags:
 
+# Retry ruby installation on transient source-download failures
+# (e.g. `curl: (52) Empty reply from server` from the ruby-lang CDN)
+rvm1_ruby_install_retries: 5
+rvm1_ruby_install_retry_delay: 15
+
 # Set the owner for the rvm directory
 rvm1_user: 'ubuntu'
 

@@ -8,6 +8,13 @@
 - name: Install rubies
   command: '{{ rvm1_rvm }} install {{ item }} {{ rvm1_ruby_install_flags }}'
   loop: '{{ rvm1_rubies | difference(rvm_list_strings.stdout_lines) }}'
+  register: rvm_install_ruby
+  # Retry to survive transient source-download failures from the ruby-lang CDN
+  # (e.g. `curl: (52) Empty reply from server`) when no binary ruby exists and
+  # rvm falls back to compiling from source.
+  until: rvm_install_ruby is succeeded
+  retries: '{{ rvm1_ruby_install_retries }}'
+  delay: '{{ rvm1_ruby_install_retry_delay }}'
 
 - name: Detect default ruby version
   command: '{{ rvm1_rvm }} alias list default'
