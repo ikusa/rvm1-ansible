@@ -36,7 +36,19 @@
   with_items: "{{ gpg_import.results }}"
 
 - name: Import GPG keys from rvm.io, if keyservers failed
-  shell: 'curl -sSL https://rvm.io/{{ item }} | gpg --batch --import -'
+  # rvm.io (over HTTPS) is the only reachable key source in locked-down build
+  # networks where public keyservers are blocked. That egress path is flaky
+  # (intermittent "curl: (52) Empty reply from server"), so retry hard both at
+  # the curl level and the task level: a single blip must not fail the build.
+  # set -o pipefail (bash) so a curl failure fails the pipe instead of being
+  # masked by gpg's exit code.
+  shell: 'set -o pipefail; curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors https://rvm.io/{{ item }} | gpg --batch --import -'
+  args:
+    executable: /bin/bash
+  register: rvm_io_gpg_import
+  until: rvm_io_gpg_import is succeeded
+  retries: 5
+  delay: 5
   with_items:
     - mpapis.asc
     - pkuczynski.asc
