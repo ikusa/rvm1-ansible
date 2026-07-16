@@ -48,12 +48,13 @@ rvm1_gpg_keys: '409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D695
 # The GPG key server
 rvm1_gpg_key_server: 'hkp://keys.openpgp.org'
 
-# The GPG alternative key servers
-rvm1_gpg_key_servers:
-  - '{{ rvm1_gpg_key_server }}'
-  - hkp://pgp.mit.edu
-  - hkp://keyserver.pgp.com
-  - hkp://keyserver.ubuntu.com
+# The GPG alternative key servers.
+# Empty by default: public keyservers are unreachable over HKP (port 11371) in
+# firewalled/FIPS build environments and every attempt just times out (~30-60s
+# each). With no servers listed the role skips straight to the rvm.io HTTPS
+# fallback below, which fetches the same keys over 443. Add servers back here
+# (prefer hkps:// on 443) if your network can actually reach a keyserver.
+rvm1_gpg_key_servers: []
 
 # autolib mode, see https://rvm.io/rvm/autolibs
 rvm1_autolib_mode: 3
